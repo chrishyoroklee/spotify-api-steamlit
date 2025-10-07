@@ -41,9 +41,9 @@ pip install -r requirements.txt
 4. Click "Save"
 5. Copy your **Client ID** and **Client Secret**
 
-### 3. Add Yourself to User Allowlist
+### 3. Add Yourself to User Allowlist (for Streamlit Web App)
 
-Since your app is in Development Mode, you need to allowlist yourself:
+If using the Streamlit web app with OAuth, you need to allowlist yourself:
 
 1. In your Spotify app dashboard, click **Settings**
 2. Go to **User Management** tab
@@ -51,15 +51,17 @@ Since your app is in Development Mode, you need to allowlist yourself:
 4. Enter your name and the **email address associated with your Spotify account**
 5. Click **Add User**
 
-## Running the App
+**Note:** The standalone Python script (`spotify_metadata.py`) uses Client Credentials flow and doesn't require user allowlisting.
+
+## Usage
+
+### Option 1: Streamlit Web App
 
 ```bash
 streamlit run app.py
 ```
 
 The app will open at `http://localhost:8501`
-
-## Usage
 
 1. Enter your **Client ID** and **Client Secret** in the sidebar
 2. Click **"Click here to login with Spotify"**
@@ -72,6 +74,43 @@ The app will open at `http://localhost:8501`
    - 👤 **Profile** - View your account info
 5. Download data as CSV files
 
+### Option 2: Standalone Python Script
+
+Use `spotify_metadata.py` for programmatic access without Streamlit:
+
+```python
+from spotify_metadata import SpotifyMetadataFetcher
+
+# Initialize
+fetcher = SpotifyMetadataFetcher(
+    client_id="your_client_id", 
+    client_secret="your_client_secret"
+)
+
+# Get track metadata
+track = fetcher.get_track("https://open.spotify.com/track/...")
+print(f"{track['name']} by {track['artists']}")
+fetcher.save_to_csv(track, "track.csv")
+
+# Get album metadata (includes all tracks)
+album = fetcher.get_album("https://open.spotify.com/album/...")
+fetcher.save_to_csv(album, "album.csv")
+
+# Get artist metadata
+artist = fetcher.get_artist("https://open.spotify.com/artist/...")
+print(f"{artist['name']}: {artist['followers']:,} followers")
+
+# Get playlist metadata (includes all tracks)
+playlist = fetcher.get_playlist("https://open.spotify.com/playlist/...")
+fetcher.save_to_csv(playlist, "playlist.csv")
+```
+
+Run the included examples:
+```bash
+# Edit spotify_metadata.py to add your credentials, then:
+python spotify_metadata.py
+```
+
 ## Example URLs
 
 - **Track:** `https://open.spotify.com/track/7C0LbWtZgDYjmaSuz10AeD`
@@ -81,13 +120,15 @@ The app will open at `http://localhost:8501`
 
 ## Deployment
 
-To deploy on Streamlit Cloud:
+To deploy the Streamlit app on Streamlit Cloud:
 
 1. Push your code to GitHub
 2. Go to [share.streamlit.io](https://share.streamlit.io)
 3. Deploy your app
 4. Update the `REDIRECT_URI` in `app.py` to your deployed URL (e.g., `https://your-app.streamlit.app`)
 5. Add the new redirect URI to your Spotify app settings
+
+For the standalone Python script, simply copy `spotify_metadata.py` and use it in your own projects.
 
 ## Troubleshooting
 
@@ -101,7 +142,8 @@ To deploy on Streamlit Cloud:
 - Make sure there are no extra spaces when copying
 
 ### Can't Access Playlists
-- Make sure you've authorized the app with the correct scopes
+- **Streamlit app:** Make sure you've authorized with the correct scopes
+- **Python script:** Some playlists may require OAuth (user authentication) instead of Client Credentials
 - Only user-created playlists work in Development Mode (not Spotify's algorithmic playlists)
 
 ## Why This Exists
